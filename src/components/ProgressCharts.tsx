@@ -57,7 +57,7 @@ const ProgressCharts = () => {
               />
               <YAxis />
               <Tooltip 
-                formatter={(value, name) => [`${value.toFixed(1)}%`, 'Progress']}
+                formatter={(value: number) => [`${value.toFixed(1)}%`, 'Progress']}
                 labelFormatter={(label) => `Unit: ${label}`}
               />
               <Bar 
@@ -84,7 +84,7 @@ const ProgressCharts = () => {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, value }) => `${name}: ${value.toFixed(1)}h`}
+                  label={({ name, value }) => `${name}: ${(value as number).toFixed(1)}h`}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
@@ -93,7 +93,7 @@ const ProgressCharts = () => {
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value) => [`${value.toFixed(1)} hours`, 'Study Time']} />
+                <Tooltip formatter={(value: number) => [`${value.toFixed(1)} hours`, 'Study Time']} />
               </PieChart>
             </ResponsiveContainer>
           ) : (
