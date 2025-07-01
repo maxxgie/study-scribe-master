@@ -1,6 +1,9 @@
 
 import React from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { StudyProvider } from '@/contexts/StudyContext';
+import { Navigate } from 'react-router-dom';
+import Header from '@/components/Header';
 import StudyLogger from '@/components/StudyLogger';
 import StudyAnalytics from '@/components/StudyAnalytics';
 import ProgressCharts from '@/components/ProgressCharts';
@@ -9,15 +12,34 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, Calendar, TrendingUp, Clock } from 'lucide-react';
 
 const Index = () => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
   return (
     <StudyProvider>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <Header />
+        
         <div className="container mx-auto px-4 py-8">
-          {/* Header */}
+          {/* Welcome Section */}
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">
-              Smart Study Planner
-            </h1>
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              Welcome back, {user.user_metadata?.full_name || 'Student'}!
+            </h2>
             <p className="text-lg text-gray-600">
               Track your progress, analyze patterns, and optimize your study schedule
             </p>

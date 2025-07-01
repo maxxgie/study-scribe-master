@@ -1,5 +1,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 export interface StudyUnit {
   id: number;
@@ -16,80 +19,157 @@ export interface StudySession {
   date: Date;
   duration: number; // in minutes
   notes?: string;
+  subtopic?: string;
+  confidence_rating?: number;
 }
 
 export interface StudyContextType {
   units: StudyUnit[];
   sessions: StudySession[];
   currentWeek: number;
-  addStudySession: (unitId: number, duration: number, notes?: string) => void;
+  loading: boolean;
+  addStudySession: (unitId: number, duration: number, notes?: string, subtopic?: string, confidenceRating?: number) => Promise<void>;
   getUnitProgress: (unitId: number) => number;
   getWeeklyProgress: () => Record<number, number>;
   getLaggingUnits: () => StudyUnit[];
   getStudySuggestions: () => string[];
+  refreshData: () => Promise<void>;
 }
 
 const StudyContext = createContext<StudyContextType | undefined>(undefined);
 
-const UNITS: StudyUnit[] = [
-  { id: 1, name: 'Digital Logic and Design', color: '#3B82F6', totalHours: 0, weeklyGoal: 8 },
-  { id: 2, name: 'System Analysis and Design', color: '#8B5CF6', totalHours: 0, weeklyGoal: 8 },
-  { id: 3, name: 'Database Systems and Design', color: '#10B981', totalHours: 0, weeklyGoal: 8 },
-  { id: 4, name: 'General Skills and Communications', color: '#F59E0B', totalHours: 0, weeklyGoal: 6 },
-  { id: 5, name: 'Probability and Statistics', color: '#EF4444', totalHours: 0, weeklyGoal: 8 },
-  { id: 6, name: 'Algorithm Design and Analysis', color: '#06B6D4', totalHours: 0, weeklyGoal: 8 },
-  { id: 7, name: 'Programming Languages', color: '#84CC16', totalHours: 0, weeklyGoal: 8 },
-  { id: 8, name: 'Operating Systems', color: '#F97316', totalHours: 0, weeklyGoal: 8 }
-];
-
 export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [units, setUnits] = useState<StudyUnit[]>(UNITS);
+  const { user } = useAuth();
+  const [units, setUnits] = useState<StudyUnit[]>([]);
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [currentWeek, setCurrentWeek] = useState(1);
+  const [loading, setLoading] = useState(false);
 
-  // Load data from localStorage on mount
+  // Load data from Supabase when user is authenticated
   useEffect(() => {
-    const savedSessions = localStorage.getItem('studySessions');
-    const savedWeek = localStorage.getItem('currentWeek');
+    if (user) {
+      refreshData();
+    } else {
+      // Reset data when user is not authenticated
+      setUnits([]);
+      setSessions([]);
+    }
+  }, [user]);
+
+  const refreshData = async () => {
+    if (!user) return;
     
-    if (savedSessions) {
-      const parsedSessions = JSON.parse(savedSessions).map((session: any) => ({
-        ...session,
-        date: new Date(session.date)
+    setLoading(true);
+    try {
+      // Fetch study units
+      const { data: unitsData, error: unitsError } = await supabase
+        .from('study_units')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('id');
+
+      if (unitsError) throw unitsError;
+
+      // Fetch study sessions
+      const { data: sessionsData, error: sessionsError } = await supabase
+        .from('study_sessions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('date', { ascending: false });
+
+      if (sessionsError) throw sessionsError;
+
+      // Process units data
+      const processedUnits = unitsData.map(unit => ({
+        id: unit.id,
+        name: unit.name,
+        color: unit.color,
+        weeklyGoal: unit.weekly_goal,
+        totalHours: sessionsData
+          .filter(session => session.unit_id === unit.id)
+          .reduce((total, session) => total + session.duration, 0) / 60,
+        lastStudied: sessionsData
+          .filter(session => session.unit_id === unit.id)
+          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]?.date
+          ? new Date(sessionsData.filter(session => session.unit_id === unit.id)[0].date)
+          : undefined
       }));
-      setSessions(parsedSessions);
-    }
-    
-    if (savedWeek) {
-      setCurrentWeek(parseInt(savedWeek));
-    }
-  }, []);
 
-  // Save sessions to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('studySessions', JSON.stringify(sessions));
-    
-    // Update unit total hours
-    const updatedUnits = units.map(unit => ({
-      ...unit,
-      totalHours: sessions
-        .filter(session => session.unitId === unit.id)
-        .reduce((total, session) => total + session.duration, 0) / 60
-    }));
-    setUnits(updatedUnits);
-  }, [sessions]);
+      // Process sessions data
+      const processedSessions = sessionsData.map(session => ({
+        id: session.id,
+        unitId: session.unit_id,
+        date: new Date(session.date),
+        duration: session.duration,
+        notes: session.notes,
+        subtopic: session.subtopic,
+        confidence_rating: session.confidence_rating
+      }));
 
-  const addStudySession = (unitId: number, duration: number, notes?: string) => {
-    const newSession: StudySession = {
-      id: Date.now().toString(),
-      unitId,
-      date: new Date(),
-      duration,
-      notes
-    };
-    
-    setSessions(prev => [...prev, newSession]);
-    console.log(`Added study session: ${duration} minutes for unit ${unitId}`);
+      setUnits(processedUnits);
+      setSessions(processedSessions);
+
+      // Calculate current week (simplified - could be enhanced)
+      const startOfSemester = new Date('2024-01-15'); // Example start date
+      const now = new Date();
+      const weeksPassed = Math.floor((now.getTime() - startOfSemester.getTime()) / (7 * 24 * 60 * 60 * 1000));
+      setCurrentWeek(Math.max(1, Math.min(weeksPassed + 1, 12)));
+
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      toast.error('Failed to load study data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addStudySession = async (unitId: number, duration: number, notes?: string, subtopic?: string, confidenceRating?: number) => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('study_sessions')
+        .insert({
+          user_id: user.id,
+          unit_id: unitId,
+          duration,
+          notes,
+          subtopic,
+          confidence_rating: confidenceRating,
+          date: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Add to local state
+      const newSession: StudySession = {
+        id: data.id,
+        unitId: data.unit_id,
+        date: new Date(data.date),
+        duration: data.duration,
+        notes: data.notes,
+        subtopic: data.subtopic,
+        confidence_rating: data.confidence_rating
+      };
+
+      setSessions(prev => [newSession, ...prev]);
+
+      // Update unit total hours
+      setUnits(prev => prev.map(unit => 
+        unit.id === unitId 
+          ? { ...unit, totalHours: unit.totalHours + (duration / 60), lastStudied: new Date() }
+          : unit
+      ));
+
+      const unitName = units.find(u => u.id === unitId)?.name;
+      toast.success(`Logged ${duration} minutes for ${unitName}`);
+
+    } catch (error) {
+      console.error('Error adding study session:', error);
+      toast.error('Failed to log study session');
+    }
   };
 
   const getUnitProgress = (unitId: number): number => {
@@ -126,9 +206,9 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const laggingUnits = getLaggingUnits();
     const suggestions: string[] = [];
     
-    if (currentWeek === 4) {
+    if (currentWeek === 5) {
       suggestions.push("🚨 CAT Week 5 approaching! Focus on reviewing all units.");
-    } else if (currentWeek === 7) {
+    } else if (currentWeek === 8) {
       suggestions.push("🚨 CAT Week 8 approaching! Prioritize weaker units.");
     } else if (currentWeek >= 10) {
       suggestions.push("📚 Exam preparation mode! Create comprehensive review schedules.");
@@ -150,11 +230,13 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       units,
       sessions,
       currentWeek,
+      loading,
       addStudySession,
       getUnitProgress,
       getWeeklyProgress,
       getLaggingUnits,
-      getStudySuggestions
+      getStudySuggestions,
+      refreshData
     }}>
       {children}
     </StudyContext.Provider>

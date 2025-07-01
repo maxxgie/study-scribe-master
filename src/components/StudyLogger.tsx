@@ -5,40 +5,61 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { useStudy } from '@/contexts/StudyContext';
-import { Clock, Plus } from 'lucide-react';
-import { toast } from 'sonner';
+import { Clock, Plus, Star } from 'lucide-react';
 
 const StudyLogger = () => {
-  const { units, addStudySession } = useStudy();
+  const { units, addStudySession, loading } = useStudy();
   const [selectedUnit, setSelectedUnit] = useState<string>('');
   const [duration, setDuration] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
+  const [subtopic, setSubtopic] = useState<string>('');
+  const [confidenceRating, setConfidenceRating] = useState<string>('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!selectedUnit || !duration) {
-      toast.error('Please select a unit and enter duration');
       return;
     }
 
     const durationNum = parseInt(duration);
     if (durationNum <= 0) {
-      toast.error('Duration must be greater than 0');
       return;
     }
 
-    addStudySession(parseInt(selectedUnit), durationNum, notes || undefined);
+    setSubmitting(true);
     
-    const unitName = units.find(u => u.id === parseInt(selectedUnit))?.name;
-    toast.success(`Logged ${durationNum} minutes for ${unitName}`);
+    await addStudySession(
+      parseInt(selectedUnit), 
+      durationNum, 
+      notes || undefined,
+      subtopic || undefined,
+      confidenceRating ? parseInt(confidenceRating) : undefined
+    );
     
     // Reset form
     setSelectedUnit('');
     setDuration('');
     setNotes('');
+    setSubtopic('');
+    setConfidenceRating('');
+    setSubmitting(false);
   };
+
+  if (loading) {
+    return (
+      <Card className="w-full">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-center h-32">
+            <div className="text-muted-foreground">Loading...</div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full">
@@ -51,7 +72,7 @@ const StudyLogger = () => {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-sm font-medium mb-2 block">Unit</label>
+            <Label className="text-sm font-medium mb-2 block">Unit</Label>
             <Select value={selectedUnit} onValueChange={setSelectedUnit}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a unit to study" />
@@ -73,7 +94,7 @@ const StudyLogger = () => {
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-2 block">Duration (minutes)</label>
+            <Label className="text-sm font-medium mb-2 block">Duration (minutes)</Label>
             <Input
               type="number"
               placeholder="e.g., 60"
@@ -84,7 +105,58 @@ const StudyLogger = () => {
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-2 block">Notes (optional)</label>
+            <Label className="text-sm font-medium mb-2 block">Subtopic (optional)</Label>
+            <Input
+              type="text"
+              placeholder="e.g., Binary operations, SQL queries"
+              value={subtopic}
+              onChange={(e) => setSubtopic(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium mb-2 block">Confidence Rating (optional)</Label>
+            <Select value={confidenceRating} onValueChange={setConfidenceRating}>
+              <SelectTrigger>
+                <SelectValue placeholder="How confident do you feel?" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">
+                  <div className="flex items-center gap-2">
+                    <Star className="h-4 w-4" />
+                    <span>1 - Need more practice</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="2">
+                  <div className="flex items-center gap-2">
+                    <Star className="h-4 w-4" />
+                    <span>2 - Getting there</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="3">
+                  <div className="flex items-center gap-2">
+                    <Star className="h-4 w-4" />
+                    <span>3 - Comfortable</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="4">
+                  <div className="flex items-center gap-2">
+                    <Star className="h-4 w-4" />
+                    <span>4 - Very confident</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="5">
+                  <div className="flex items-center gap-2">
+                    <Star className="h-4 w-4" />
+                    <span>5 - Mastered it!</span>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium mb-2 block">Notes (optional)</Label>
             <Textarea
               placeholder="What did you study? Any key insights?"
               value={notes}
@@ -93,9 +165,9 @@ const StudyLogger = () => {
             />
           </div>
 
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="w-full" disabled={submitting}>
             <Plus className="h-4 w-4 mr-2" />
-            Log Study Session
+            {submitting ? 'Logging...' : 'Log Study Session'}
           </Button>
         </form>
       </CardContent>
