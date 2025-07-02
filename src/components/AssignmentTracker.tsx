@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAssignments } from '@/hooks/useAssignments';
 import { useCourses } from '@/hooks/useCourses';
@@ -34,6 +33,7 @@ const AssignmentTracker = () => {
     createAssignment({
       ...newAssignment,
       due_date: selectedDate.toISOString(),
+      completed: false, // Add the missing completed property
     });
 
     setNewAssignment({
