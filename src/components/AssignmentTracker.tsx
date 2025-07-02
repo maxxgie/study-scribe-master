@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAssignments } from '@/hooks/useAssignments';
 import { useCourses } from '@/hooks/useCourses';
@@ -11,14 +12,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Plus, CheckCircle, Clock, AlertTriangle, CalendarIcon, Trash2 } from 'lucide-react';
+import { Plus, CheckCircle, Clock, AlertTriangle, CalendarIcon, Trash2, Paperclip } from 'lucide-react';
 import { format } from 'date-fns';
+import AssignmentFileUpload from './AssignmentFileUpload';
 
 const AssignmentTracker = () => {
   const { assignments, upcomingAssignments, overDueAssignments, createAssignment, updateAssignment, deleteAssignment } = useAssignments();
   const { courses } = useCourses();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>();
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
   const [newAssignment, setNewAssignment] = useState({
     title: '',
     description: '',
@@ -33,7 +36,7 @@ const AssignmentTracker = () => {
     createAssignment({
       ...newAssignment,
       due_date: selectedDate.toISOString(),
-      completed: false, // Add the missing completed property
+      completed: false,
     });
 
     setNewAssignment({
@@ -73,6 +76,55 @@ const AssignmentTracker = () => {
     if (diffInDays === 1) return 'Due tomorrow';
     return `Due in ${diffInDays} days`;
   };
+
+  const AssignmentCard = ({ assignment, bgColor = 'bg-white' }: { assignment: any; bgColor?: string }) => (
+    <div className={`flex items-center justify-between p-3 border rounded-lg ${bgColor}`}>
+      <div className="flex items-center gap-3">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => toggleAssignmentStatus(assignment)}
+        >
+          <CheckCircle className="h-4 w-4" />
+        </Button>
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <h4 className={`font-medium ${assignment.completed ? 'line-through text-muted-foreground' : ''}`}>
+              {assignment.title}
+            </h4>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedAssignmentId(selectedAssignmentId === assignment.id ? null : assignment.id)}
+            >
+              <Paperclip className="h-4 w-4" />
+            </Button>
+          </div>
+          <p className="text-sm text-muted-foreground">{formatDueDate(assignment.due_date)}</p>
+          {assignment.description && (
+            <p className="text-sm text-muted-foreground mt-1">{assignment.description}</p>
+          )}
+          {selectedAssignmentId === assignment.id && (
+            <div className="mt-3 p-3 border rounded-lg bg-gray-50">
+              <AssignmentFileUpload assignmentId={assignment.id} />
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <Badge className={getPriorityColor(assignment.priority)}>
+          {assignment.priority}
+        </Badge>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => deleteAssignment(assignment.id)}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -180,33 +232,7 @@ const AssignmentTracker = () => {
           </CardHeader>
           <CardContent className="space-y-3">
             {overDueAssignments.map(assignment => (
-              <div key={assignment.id} className="flex items-center justify-between p-3 border rounded-lg bg-red-50">
-                <div className="flex items-center gap-3">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleAssignmentStatus(assignment)}
-                  >
-                    <CheckCircle className="h-4 w-4" />
-                  </Button>
-                  <div>
-                    <h4 className="font-medium">{assignment.title}</h4>
-                    <p className="text-sm text-muted-foreground">{formatDueDate(assignment.due_date)}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge className={getPriorityColor(assignment.priority)}>
-                    {assignment.priority}
-                  </Badge>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => deleteAssignment(assignment.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+              <AssignmentCard key={assignment.id} assignment={assignment} bgColor="bg-red-50" />
             ))}
           </CardContent>
         </Card>
@@ -227,36 +253,7 @@ const AssignmentTracker = () => {
             </p>
           ) : (
             upcomingAssignments.map(assignment => (
-              <div key={assignment.id} className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleAssignmentStatus(assignment)}
-                  >
-                    <CheckCircle className="h-4 w-4" />
-                  </Button>
-                  <div>
-                    <h4 className="font-medium">{assignment.title}</h4>
-                    <p className="text-sm text-muted-foreground">{formatDueDate(assignment.due_date)}</p>
-                    {assignment.description && (
-                      <p className="text-sm text-muted-foreground mt-1">{assignment.description}</p>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge className={getPriorityColor(assignment.priority)}>
-                    {assignment.priority}
-                  </Badge>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => deleteAssignment(assignment.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+              <AssignmentCard key={assignment.id} assignment={assignment} />
             ))
           )}
         </CardContent>
@@ -273,24 +270,7 @@ const AssignmentTracker = () => {
           </CardHeader>
           <CardContent className="space-y-3">
             {assignments.filter(a => a.completed).map(assignment => (
-              <div key={assignment.id} className="flex items-center justify-between p-3 border rounded-lg bg-green-50">
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                  <div>
-                    <h4 className="font-medium line-through text-muted-foreground">{assignment.title}</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Completed on {format(new Date(assignment.updated_at), 'MMM dd, yyyy')}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => deleteAssignment(assignment.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
+              <AssignmentCard key={assignment.id} assignment={assignment} bgColor="bg-green-50" />
             ))}
           </CardContent>
         </Card>

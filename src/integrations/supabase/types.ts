@@ -9,8 +9,50 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      assignment_files: {
+        Row: {
+          assignment_id: string
+          created_at: string
+          file_name: string
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          assignment_id: string
+          created_at?: string
+          file_name: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          assignment_id?: string
+          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assignment_files_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assignments: {
         Row: {
+          attachment_url: string | null
           completed: boolean | null
           course_id: string | null
           created_at: string
@@ -24,6 +66,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          attachment_url?: string | null
           completed?: boolean | null
           course_id?: string | null
           created_at?: string
@@ -37,6 +80,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          attachment_url?: string | null
           completed?: boolean | null
           course_id?: string | null
           created_at?: string
