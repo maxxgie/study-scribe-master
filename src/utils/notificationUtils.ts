@@ -41,14 +41,22 @@ export const createTestNotifications = async (userId: string) => {
       type: 'info' as NotificationType,
     },
     {
-      title: 'Study Goal Reminder',
-      message: 'You are behind on your weekly study goal. Consider scheduling more study time.',
+      title: 'Assignment Due Tomorrow',
+      message: 'Your Database Systems assignment is due tomorrow at 11:59 PM. Don\'t forget to submit it!',
       type: 'warning' as NotificationType,
+      related_table: 'assignments',
     },
     {
-      title: 'Assignment Completed',
-      message: 'Great job! You have successfully completed your Database Systems assignment.',
+      title: 'Profile Updated Successfully',
+      message: 'Your personal details have been successfully updated.',
       type: 'success' as NotificationType,
+      related_table: 'profiles',
+    },
+    {
+      title: 'Weekly Progress Report',
+      message: 'This week you studied for 12.5 hours across 8 sessions covering 3 courses. Your weekly goal: 15h (83% complete)',
+      type: 'info' as NotificationType,
+      related_table: 'study_sessions',
     },
   ];
 
