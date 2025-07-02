@@ -5,19 +5,12 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Bell, Check, CheckCheck, Trash2 } from 'lucide-react';
+import { Bell, Check, CheckCheck } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { createTestNotifications } from '@/utils/notificationUtils';
 
 const NotificationCenter = () => {
   const { user } = useAuth();
   const { notifications, isLoading, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
-
-  const handleCreateTestNotifications = async () => {
-    if (user?.id) {
-      await createTestNotifications(user.id);
-    }
-  };
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -66,35 +59,23 @@ const NotificationCenter = () => {
               </Badge>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            {notifications.length === 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCreateTestNotifications}
-                className="flex items-center gap-2"
-              >
-                Add Test Notifications
-              </Button>
-            )}
-            {unreadCount > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => markAllAsRead()}
-                className="flex items-center gap-2"
-              >
-                <CheckCheck className="h-4 w-4" />
-                Mark All Read
-              </Button>
-            )}
-          </div>
+          {unreadCount > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => markAllAsRead()}
+              className="flex items-center gap-2"
+            >
+              <CheckCheck className="h-4 w-4" />
+              Mark All Read
+            </Button>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {notifications.length === 0 ? (
           <p className="text-muted-foreground text-center py-8">
-            No notifications yet. You're all caught up!
+            No notifications yet. Complete assignments, update your profile, or wait for weekly reports to see notifications here.
           </p>
         ) : (
           notifications.map((notification) => (
@@ -128,8 +109,9 @@ const NotificationCenter = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => deleteNotification(notification.id)}
+                    className="h-8 w-8 p-0"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    ×
                   </Button>
                 </div>
               </div>

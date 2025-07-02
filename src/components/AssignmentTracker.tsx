@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { useAssignments } from '@/hooks/useAssignments';
 import { useCourses } from '@/hooks/useCourses';
 import { Button } from '@/components/ui/button';
@@ -12,11 +13,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Plus, CheckCircle, Clock, AlertTriangle, CalendarIcon, Trash2, Paperclip } from 'lucide-react';
+import { Plus, CheckCircle, Clock, AlertTriangle, CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
+import { createNotification } from '@/utils/notificationUtils';
 import AssignmentFileUpload from './AssignmentFileUpload';
 
 const AssignmentTracker = () => {
+  const { user } = useAuth();
   const { assignments, upcomingAssignments, overDueAssignments, createAssignment, updateAssignment, deleteAssignment } = useAssignments();
   const { courses } = useCourses();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -30,14 +33,26 @@ const AssignmentTracker = () => {
     due_date: '',
   });
 
-  const handleCreateAssignment = () => {
+  const handleCreateAssignment = async () => {
     if (!newAssignment.title || !selectedDate) return;
 
-    createAssignment({
+    const courseName = courses.find(c => c.id === newAssignment.course_id)?.name || 'Unknown Course';
+    
+    await createAssignment({
       ...newAssignment,
       due_date: selectedDate.toISOString(),
       completed: false,
     });
+
+    // Create notification for new assignment
+    if (user?.id) {
+      await createNotification(user.id, {
+        title: 'Assignment Created',
+        message: `"${newAssignment.title}" for ${courseName} has been added to your assignments.`,
+        type: 'info',
+        related_table: 'assignments',
+      });
+    }
 
     setNewAssignment({
       title: '',
@@ -50,11 +65,24 @@ const AssignmentTracker = () => {
     setIsDialogOpen(false);
   };
 
-  const toggleAssignmentStatus = (assignment: any) => {
-    updateAssignment({
+  const toggleAssignmentStatus = async (assignment: any) => {
+    const wasCompleted = assignment.completed;
+    
+    await updateAssignment({
       id: assignment.id,
       completed: !assignment.completed,
     });
+
+    // Create notification when assignment is completed
+    if (!wasCompleted && user?.id) {
+      await createNotification(user.id, {
+        title: 'Assignment Completed!',
+        message: `Great job! You've completed "${assignment.title}".`,
+        type: 'success',
+        related_table: 'assignments',
+        related_id: assignment.id,
+      });
+    }
   };
 
   const getPriorityColor = (priority: string) => {
@@ -97,7 +125,7 @@ const AssignmentTracker = () => {
               size="sm"
               onClick={() => setSelectedAssignmentId(selectedAssignmentId === assignment.id ? null : assignment.id)}
             >
-              <Paperclip className="h-4 w-4" />
+              📎
             </Button>
           </div>
           <p className="text-sm text-muted-foreground">{formatDueDate(assignment.due_date)}</p>
@@ -119,8 +147,9 @@ const AssignmentTracker = () => {
           variant="ghost"
           size="sm"
           onClick={() => deleteAssignment(assignment.id)}
+          className="h-8 w-8 p-0"
         >
-          <Trash2 className="h-4 w-4" />
+          ×
         </Button>
       </div>
     </div>

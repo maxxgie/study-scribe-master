@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -8,8 +9,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useStudy } from '@/contexts/StudyContext';
 import { Clock, Plus, Star } from 'lucide-react';
+import { createNotification } from '@/utils/notificationUtils';
 
 const StudyLogger = () => {
+  const { user } = useAuth();
   const { units, addStudySession, loading } = useStudy();
   const [selectedUnit, setSelectedUnit] = useState<string>('');
   const [duration, setDuration] = useState<string>('');
@@ -32,6 +35,9 @@ const StudyLogger = () => {
 
     setSubmitting(true);
     
+    const selectedUnitData = units.find(u => u.id === selectedUnit);
+    const unitName = selectedUnitData?.name || 'Unknown Unit';
+    
     await addStudySession(
       selectedUnit, // No need to parse as int since it's now a string UUID
       durationNum, 
@@ -39,6 +45,34 @@ const StudyLogger = () => {
       subtopic || undefined,
       confidenceRating ? parseInt(confidenceRating) : undefined
     );
+    
+    // Create notification for study milestone achievements
+    if (user?.id) {
+      let notificationMessage = `You just completed a ${durationNum}-minute study session`;
+      if (unitName !== 'Unknown Unit') {
+        notificationMessage += ` for ${unitName}`;
+      }
+      if (subtopic) {
+        notificationMessage += ` focusing on ${subtopic}`;
+      }
+      notificationMessage += '.';
+
+      // Different notification types based on duration
+      let notificationType: 'info' | 'success' = 'info';
+      if (durationNum >= 120) { // 2 hours or more
+        notificationType = 'success';
+        notificationMessage += ' Great dedication!';
+      } else if (durationNum >= 60) { // 1 hour or more
+        notificationMessage += ' Keep up the good work!';
+      }
+
+      await createNotification(user.id, {
+        title: 'Study Session Completed',
+        message: notificationMessage,
+        type: notificationType,
+        related_table: 'study_sessions',
+      });
+    }
     
     // Reset form
     setSelectedUnit('');
