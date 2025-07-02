@@ -102,7 +102,7 @@ const WeeklyTimetable = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-foreground">
           <Calendar className="h-5 w-5" />
           Weekly Study Timetable
         </CardTitle>
@@ -113,23 +113,23 @@ const WeeklyTimetable = () => {
             const sessions = getTimetableForDay(index);
             
             return (
-              <div key={day} className="border rounded-lg p-4">
-                <h3 className="font-semibold mb-3 text-center">{day}</h3>
+              <div key={day} className="border border-border rounded-lg p-4 bg-card">
+                <h3 className="font-semibold mb-3 text-center text-foreground">{day}</h3>
                 <div className="space-y-2">
                   {sessions.map((session, sessionIndex) => (
                     <div 
                       key={sessionIndex} 
-                      className={`p-2 rounded text-xs ${
+                      className={`p-2 rounded text-xs border-l-4 ${
                         session.type === 'priority' 
-                          ? 'bg-red-100 border-l-4 border-red-500' 
+                          ? 'bg-destructive/10 border-l-destructive dark:bg-destructive/20' 
                           : session.type === 'review'
-                          ? 'bg-blue-100 border-l-4 border-blue-500'
-                          : 'bg-gray-100 border-l-4 border-gray-400'
+                          ? 'bg-primary/10 border-l-primary dark:bg-primary/20'
+                          : 'bg-accent border-l-muted-foreground'
                       }`}
                     >
                       <div className="flex items-center gap-1 mb-1">
-                        <Clock className="h-3 w-3" />
-                        <span className="font-medium">{session.time}</span>
+                        <Clock className="h-3 w-3 text-muted-foreground" />
+                        <span className="font-medium text-foreground">{session.time}</span>
                       </div>
                       <div className="space-y-1">
                         {session.units.map(unit => (
@@ -138,12 +138,12 @@ const WeeklyTimetable = () => {
                               className="w-2 h-2 rounded-full" 
                               style={{ backgroundColor: unit.color }}
                             />
-                            <span className="text-xs">{unit.name}</span>
+                            <span className="text-xs text-foreground">{unit.name}</span>
                           </div>
                         ))}
                       </div>
                       {session.type === 'priority' && (
-                        <div className="text-xs text-red-600 mt-1 font-medium">Priority Focus</div>
+                        <div className="text-xs text-destructive mt-1 font-medium">Priority Focus</div>
                       )}
                     </div>
                   ))}
@@ -153,20 +153,20 @@ const WeeklyTimetable = () => {
           })}
         </div>
         
-        <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-          <h4 className="font-medium mb-2">Timetable Legend:</h4>
+        <div className="mt-6 p-4 bg-accent/50 rounded-lg border border-border">
+          <h4 className="font-medium mb-2 text-foreground">Timetable Legend:</h4>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-red-100 border-l-2 border-red-500"></div>
-              <span>Priority (Lagging Units)</span>
+              <div className="w-3 h-3 bg-destructive/10 border-l-2 border-destructive dark:bg-destructive/20"></div>
+              <span className="text-foreground">Priority (Lagging Units)</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-gray-100 border-l-2 border-gray-400"></div>
-              <span>Regular Study</span>
+              <div className="w-3 h-3 bg-accent border-l-2 border-muted-foreground"></div>
+              <span className="text-foreground">Regular Study</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-blue-100 border-l-2 border-blue-500"></div>
-              <span>Review Sessions</span>
+              <div className="w-3 h-3 bg-primary/10 border-l-2 border-primary dark:bg-primary/20"></div>
+              <span className="text-foreground">Review Sessions</span>
             </div>
           </div>
         </div>

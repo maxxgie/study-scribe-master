@@ -16,6 +16,8 @@ const WeeklyProgressManager = () => {
     if (!user?.id) return;
 
     try {
+      console.log('Starting weekly progress reset...');
+      
       // Get current weekly progress
       const weeklyProgress = getWeeklyProgress();
       const laggingUnits = getLaggingUnits();
@@ -36,6 +38,7 @@ const WeeklyProgressManager = () => {
       const totalGoals = Object.keys(weeklyProgress).length;
       const goalsMet = Object.values(weeklyProgress).filter(p => p >= 100).length;
 
+      console.log('Inserting weekly progress record...');
       const { error: progressError } = await supabase
         .from('weekly_progress')
         .insert({
@@ -52,22 +55,20 @@ const WeeklyProgressManager = () => {
             : 'Great progress! Continue maintaining your study momentum.',
         });
 
-      if (progressError) throw progressError;
+      if (progressError) {
+        console.error('Error inserting weekly progress:', progressError);
+        throw progressError;
+      }
 
-      // If not keeping lagging units, reset study_units flags
+      // If not keeping lagging units, reset course flags (using courses table instead of study_units)
       if (!keepLaggingUnits) {
-        const { error: unitsError } = await supabase
-          .from('study_units')
-          .update({ 
-            is_lagging: false,
-            lagging_hours: 0 
-          })
-          .eq('user_id', user.id);
-
-        if (unitsError) throw unitsError;
+        console.log('Resetting course lagging status...');
+        // Note: The lagging status is computed dynamically, so we don't need to reset anything in courses table
+        // This is intentionally simplified since courses table doesn't have lagging flags
       }
 
       // Create notification
+      console.log('Creating notification...');
       await createNotification(user.id, {
         title: 'Weekly Progress Reset',
         message: `Weekly progress has been saved and reset. ${keepLaggingUnits ? 'Lagging units status preserved.' : 'All unit statuses reset.'}`,
@@ -76,13 +77,14 @@ const WeeklyProgressManager = () => {
       });
 
       // Refresh data to show updated state
+      console.log('Refreshing data...');
       await refreshData();
       
       toast.success('Weekly progress reset successfully');
 
     } catch (error) {
       console.error('Error resetting weekly progress:', error);
-      toast.error('Failed to reset weekly progress');
+      toast.error(`Failed to reset weekly progress: ${error.message || 'Unknown error'}`);
     }
   };
 

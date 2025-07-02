@@ -172,7 +172,7 @@ const AssignmentTracker = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Assignment Tracker</h2>
+        <h2 className="text-2xl font-bold text-foreground">Assignment Tracker</h2>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button className="flex items-center gap-2">
