@@ -28,7 +28,7 @@ const ProgressCharts = () => {
     .slice(-10)
     .reverse()
     .map(session => {
-      const unit = units.find(u => u.id === session.unitId);
+      const unit = units.find(u => u.id === session.courseId);
       return {
         unit: unit?.name || 'Unknown',
         duration: session.duration,

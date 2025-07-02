@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 export interface StudyUnit {
-  id: number;
+  id: string; // Changed from number to string (UUID)
   name: string;
   color: string;
   totalHours: number;
@@ -15,7 +15,7 @@ export interface StudyUnit {
 
 export interface StudySession {
   id: string;
-  unitId: number;
+  courseId: string; // Changed from unitId to courseId
   date: Date;
   duration: number; // in minutes
   notes?: string;
@@ -28,9 +28,9 @@ export interface StudyContextType {
   sessions: StudySession[];
   currentWeek: number;
   loading: boolean;
-  addStudySession: (unitId: number, duration: number, notes?: string, subtopic?: string, confidenceRating?: number) => Promise<void>;
-  getUnitProgress: (unitId: number) => number;
-  getWeeklyProgress: () => Record<number, number>;
+  addStudySession: (courseId: string, duration: number, notes?: string, subtopic?: string, confidenceRating?: number) => Promise<void>;
+  getUnitProgress: (courseId: string) => number;
+  getWeeklyProgress: () => Record<string, number>;
   getLaggingUnits: () => StudyUnit[];
   getStudySuggestions: () => string[];
   refreshData: () => Promise<void>;
@@ -56,19 +56,38 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [user]);
 
+  // Set up real-time subscription for course changes
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('course-changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'courses', filter: `user_id=eq.${user.id}` },
+        () => {
+          refreshData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
   const refreshData = async () => {
     if (!user) return;
     
     setLoading(true);
     try {
-      // Fetch study units
-      const { data: unitsData, error: unitsError } = await supabase
-        .from('study_units')
+      // Fetch courses (which are now our study units)
+      const { data: coursesData, error: coursesError } = await supabase
+        .from('courses')
         .select('*')
         .eq('user_id', user.id)
-        .order('id');
+        .order('name');
 
-      if (unitsError) throw unitsError;
+      if (coursesError) throw coursesError;
 
       // Fetch study sessions
       const { data: sessionsData, error: sessionsError } = await supabase
@@ -79,26 +98,26 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       if (sessionsError) throw sessionsError;
 
-      // Process units data
-      const processedUnits = unitsData.map(unit => ({
-        id: unit.id,
-        name: unit.name,
-        color: unit.color,
-        weeklyGoal: unit.weekly_goal,
+      // Process courses data as study units
+      const processedUnits = coursesData.map(course => ({
+        id: course.id,
+        name: course.name,
+        color: course.color || '#3B82F6',
+        weeklyGoal: course.weekly_goal || 8,
         totalHours: sessionsData
-          .filter(session => session.unit_id === unit.id)
+          .filter(session => session.course_id === course.id)
           .reduce((total, session) => total + session.duration, 0) / 60,
         lastStudied: sessionsData
-          .filter(session => session.unit_id === unit.id)
+          .filter(session => session.course_id === course.id)
           .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]?.date
-          ? new Date(sessionsData.filter(session => session.unit_id === unit.id)[0].date)
+          ? new Date(sessionsData.filter(session => session.course_id === course.id)[0].date)
           : undefined
       }));
 
       // Process sessions data
       const processedSessions = sessionsData.map(session => ({
         id: session.id,
-        unitId: session.unit_id,
+        courseId: session.course_id,
         date: new Date(session.date),
         duration: session.duration,
         notes: session.notes,
@@ -123,7 +142,7 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  const addStudySession = async (unitId: number, duration: number, notes?: string, subtopic?: string, confidenceRating?: number) => {
+  const addStudySession = async (courseId: string, duration: number, notes?: string, subtopic?: string, confidenceRating?: number) => {
     if (!user) return;
 
     try {
@@ -131,7 +150,7 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         .from('study_sessions')
         .insert({
           user_id: user.id,
-          unit_id: unitId,
+          course_id: courseId,
           duration,
           notes,
           subtopic,
@@ -146,7 +165,7 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       // Add to local state
       const newSession: StudySession = {
         id: data.id,
-        unitId: data.unit_id,
+        courseId: data.course_id,
         date: new Date(data.date),
         duration: data.duration,
         notes: data.notes,
@@ -158,12 +177,12 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       // Update unit total hours
       setUnits(prev => prev.map(unit => 
-        unit.id === unitId 
+        unit.id === courseId 
           ? { ...unit, totalHours: unit.totalHours + (duration / 60), lastStudied: new Date() }
           : unit
       ));
 
-      const unitName = units.find(u => u.id === unitId)?.name;
+      const unitName = units.find(u => u.id === courseId)?.name;
       toast.success(`Logged ${duration} minutes for ${unitName}`);
 
     } catch (error) {
@@ -172,25 +191,25 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  const getUnitProgress = (unitId: number): number => {
+  const getUnitProgress = (courseId: string): number => {
     const thisWeekStart = new Date();
     thisWeekStart.setDate(thisWeekStart.getDate() - thisWeekStart.getDay());
     
     const weeklyMinutes = sessions
       .filter(session => 
-        session.unitId === unitId && 
+        session.courseId === courseId && 
         session.date >= thisWeekStart
       )
       .reduce((total, session) => total + session.duration, 0);
     
-    const unit = units.find(u => u.id === unitId);
+    const unit = units.find(u => u.id === courseId);
     if (!unit) return 0;
     
     return Math.min((weeklyMinutes / 60) / unit.weeklyGoal, 1) * 100;
   };
 
-  const getWeeklyProgress = (): Record<number, number> => {
-    const progress: Record<number, number> = {};
+  const getWeeklyProgress = (): Record<string, number> => {
+    const progress: Record<string, number> = {};
     units.forEach(unit => {
       progress[unit.id] = getUnitProgress(unit.id);
     });

@@ -52,6 +52,7 @@ export type Database = {
       }
       assignments: {
         Row: {
+          assignment_course_id: string | null
           attachment_url: string | null
           completed: boolean | null
           course_id: string | null
@@ -61,11 +62,11 @@ export type Database = {
           id: string
           priority: string | null
           title: string
-          unit_id: number | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          assignment_course_id?: string | null
           attachment_url?: string | null
           completed?: boolean | null
           course_id?: string | null
@@ -75,11 +76,11 @@ export type Database = {
           id?: string
           priority?: string | null
           title: string
-          unit_id?: number | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          assignment_course_id?: string | null
           attachment_url?: string | null
           completed?: boolean | null
           course_id?: string | null
@@ -89,23 +90,15 @@ export type Database = {
           id?: string
           priority?: string | null
           title?: string
-          unit_id?: number | null
           updated_at?: string
           user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "assignments_course_id_fkey"
-            columns: ["course_id"]
+            foreignKeyName: "assignments_assignment_course_id_fkey"
+            columns: ["assignment_course_id"]
             isOneToOne: false
             referencedRelation: "courses"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "assignments_unit_id_fkey"
-            columns: ["unit_id"]
-            isOneToOne: false
-            referencedRelation: "study_units"
             referencedColumns: ["id"]
           },
           {
@@ -161,6 +154,7 @@ export type Database = {
       courses: {
         Row: {
           code: string
+          color: string | null
           created_at: string
           credits: number | null
           description: string | null
@@ -170,10 +164,12 @@ export type Database = {
           semester: string | null
           updated_at: string
           user_id: string
+          weekly_goal: number | null
           year: number | null
         }
         Insert: {
           code: string
+          color?: string | null
           created_at?: string
           credits?: number | null
           description?: string | null
@@ -183,10 +179,12 @@ export type Database = {
           semester?: string | null
           updated_at?: string
           user_id: string
+          weekly_goal?: number | null
           year?: number | null
         }
         Update: {
           code?: string
+          color?: string | null
           created_at?: string
           credits?: number | null
           description?: string | null
@@ -196,6 +194,7 @@ export type Database = {
           semester?: string | null
           updated_at?: string
           user_id?: string
+          weekly_goal?: number | null
           year?: number | null
         }
         Relationships: []
@@ -250,43 +249,43 @@ export type Database = {
       flashcards: {
         Row: {
           answer: string
+          course_id: string | null
           created_at: string
           difficulty: number | null
           id: string
           next_review: string
           question: string
           review_count: number | null
-          unit_id: number | null
           user_id: string | null
         }
         Insert: {
           answer: string
+          course_id?: string | null
           created_at?: string
           difficulty?: number | null
           id?: string
           next_review?: string
           question: string
           review_count?: number | null
-          unit_id?: number | null
           user_id?: string | null
         }
         Update: {
           answer?: string
+          course_id?: string | null
           created_at?: string
           difficulty?: number | null
           id?: string
           next_review?: string
           question?: string
           review_count?: number | null
-          unit_id?: number | null
           user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "flashcards_unit_id_fkey"
-            columns: ["unit_id"]
+            foreignKeyName: "flashcards_course_id_fkey"
+            columns: ["course_id"]
             isOneToOne: false
-            referencedRelation: "study_units"
+            referencedRelation: "courses"
             referencedColumns: ["id"]
           },
           {
@@ -369,41 +368,41 @@ export type Database = {
       }
       quiz_scores: {
         Row: {
+          course_id: string | null
           created_at: string
           id: string
           max_score: number
           quiz_date: string
           quiz_topic: string | null
           score: number
-          unit_id: number | null
           user_id: string | null
         }
         Insert: {
+          course_id?: string | null
           created_at?: string
           id?: string
           max_score: number
           quiz_date?: string
           quiz_topic?: string | null
           score: number
-          unit_id?: number | null
           user_id?: string | null
         }
         Update: {
+          course_id?: string | null
           created_at?: string
           id?: string
           max_score?: number
           quiz_date?: string
           quiz_topic?: string | null
           score?: number
-          unit_id?: number | null
           user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "quiz_scores_unit_id_fkey"
-            columns: ["unit_id"]
+            foreignKeyName: "quiz_scores_course_id_fkey"
+            columns: ["course_id"]
             isOneToOne: false
-            referencedRelation: "study_units"
+            referencedRelation: "courses"
             referencedColumns: ["id"]
           },
           {
@@ -417,38 +416,38 @@ export type Database = {
       }
       saved_links: {
         Row: {
+          course_id: string | null
           created_at: string
           description: string | null
           id: string
           title: string
-          unit_id: number | null
           url: string
           user_id: string | null
         }
         Insert: {
+          course_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
           title: string
-          unit_id?: number | null
           url: string
           user_id?: string | null
         }
         Update: {
+          course_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
           title?: string
-          unit_id?: number | null
           url?: string
           user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "saved_links_unit_id_fkey"
-            columns: ["unit_id"]
+            foreignKeyName: "saved_links_course_id_fkey"
+            columns: ["course_id"]
             isOneToOne: false
-            referencedRelation: "study_units"
+            referencedRelation: "courses"
             referencedColumns: ["id"]
           },
           {
@@ -462,6 +461,7 @@ export type Database = {
       }
       study_files: {
         Row: {
+          course_id: string | null
           created_at: string
           file_name: string
           file_path: string
@@ -469,10 +469,10 @@ export type Database = {
           file_type: string
           id: string
           searchable_content: string | null
-          unit_id: number | null
           user_id: string | null
         }
         Insert: {
+          course_id?: string | null
           created_at?: string
           file_name: string
           file_path: string
@@ -480,10 +480,10 @@ export type Database = {
           file_type: string
           id?: string
           searchable_content?: string | null
-          unit_id?: number | null
           user_id?: string | null
         }
         Update: {
+          course_id?: string | null
           created_at?: string
           file_name?: string
           file_path?: string
@@ -491,15 +491,14 @@ export type Database = {
           file_type?: string
           id?: string
           searchable_content?: string | null
-          unit_id?: number | null
           user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "study_files_unit_id_fkey"
-            columns: ["unit_id"]
+            foreignKeyName: "study_files_course_id_fkey"
+            columns: ["course_id"]
             isOneToOne: false
-            referencedRelation: "study_units"
+            referencedRelation: "courses"
             referencedColumns: ["id"]
           },
           {
@@ -514,6 +513,7 @@ export type Database = {
       study_goals: {
         Row: {
           achieved: boolean | null
+          course_id: string | null
           created_at: string
           current_hours: number | null
           end_date: string
@@ -521,11 +521,11 @@ export type Database = {
           id: string
           start_date: string
           target_hours: number
-          unit_id: number | null
           user_id: string | null
         }
         Insert: {
           achieved?: boolean | null
+          course_id?: string | null
           created_at?: string
           current_hours?: number | null
           end_date: string
@@ -533,11 +533,11 @@ export type Database = {
           id?: string
           start_date: string
           target_hours: number
-          unit_id?: number | null
           user_id?: string | null
         }
         Update: {
           achieved?: boolean | null
+          course_id?: string | null
           created_at?: string
           current_hours?: number | null
           end_date?: string
@@ -545,15 +545,14 @@ export type Database = {
           id?: string
           start_date?: string
           target_hours?: number
-          unit_id?: number | null
           user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "study_goals_unit_id_fkey"
-            columns: ["unit_id"]
+            foreignKeyName: "study_goals_course_id_fkey"
+            columns: ["course_id"]
             isOneToOne: false
-            referencedRelation: "study_units"
+            referencedRelation: "courses"
             referencedColumns: ["id"]
           },
           {
@@ -568,43 +567,43 @@ export type Database = {
       study_sessions: {
         Row: {
           confidence_rating: number | null
+          course_id: string | null
           created_at: string
           date: string
           duration: number
           id: string
           notes: string | null
           subtopic: string | null
-          unit_id: number | null
           user_id: string | null
         }
         Insert: {
           confidence_rating?: number | null
+          course_id?: string | null
           created_at?: string
           date?: string
           duration: number
           id?: string
           notes?: string | null
           subtopic?: string | null
-          unit_id?: number | null
           user_id?: string | null
         }
         Update: {
           confidence_rating?: number | null
+          course_id?: string | null
           created_at?: string
           date?: string
           duration?: number
           id?: string
           notes?: string | null
           subtopic?: string | null
-          unit_id?: number | null
           user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "study_sessions_unit_id_fkey"
-            columns: ["unit_id"]
+            foreignKeyName: "study_sessions_course_id_fkey"
+            columns: ["course_id"]
             isOneToOne: false
-            referencedRelation: "study_units"
+            referencedRelation: "courses"
             referencedColumns: ["id"]
           },
           {

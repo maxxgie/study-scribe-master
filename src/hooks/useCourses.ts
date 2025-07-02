@@ -73,6 +73,7 @@ export const useCourses = () => {
 
   const deleteCourseMutation = useMutation({
     mutationFn: async (id: string) => {
+      // Delete the course - CASCADE will handle related study sessions and other data
       const { error } = await supabase
         .from('courses')
         .delete()
@@ -82,6 +83,7 @@ export const useCourses = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courses'] });
+      queryClient.invalidateQueries({ queryKey: ['studyData'] }); // Invalidate study data cache too
       toast.success('Course deleted successfully');
     },
   });

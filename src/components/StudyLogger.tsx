@@ -33,7 +33,7 @@ const StudyLogger = () => {
     setSubmitting(true);
     
     await addStudySession(
-      parseInt(selectedUnit), 
+      selectedUnit, // No need to parse as int since it's now a string UUID
       durationNum, 
       notes || undefined,
       subtopic || undefined,
@@ -79,7 +79,7 @@ const StudyLogger = () => {
               </SelectTrigger>
               <SelectContent>
                 {units.map(unit => (
-                  <SelectItem key={unit.id} value={unit.id.toString()}>
+                  <SelectItem key={unit.id} value={unit.id}>
                     <div className="flex items-center gap-2">
                       <div 
                         className="w-3 h-3 rounded-full" 
