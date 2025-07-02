@@ -1,6 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -14,15 +15,34 @@ import { supabase } from '@/integrations/supabase/client';
 
 const UserSettings = () => {
   const { user } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
   const [settings, setSettings] = useState({
     fullName: user?.user_metadata?.full_name || '',
     email: user?.email || '',
-    theme: 'light',
     emailNotifications: true,
     pushNotifications: true,
     weeklyReports: true,
   });
+
+  // Load user's saved theme preference
+  useEffect(() => {
+    const loadThemePreference = async () => {
+      if (user) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('theme_preference')
+          .eq('id', user.id)
+          .single();
+        
+        if (data?.theme_preference && data.theme_preference !== theme) {
+          setTheme(data.theme_preference);
+        }
+      }
+    };
+    
+    loadThemePreference();
+  }, [user, setTheme]);
 
   const handleSaveProfile = async () => {
     setIsLoading(true);
@@ -37,7 +57,7 @@ const UserSettings = () => {
         .from('profiles')
         .update({ 
           full_name: settings.fullName,
-          theme_preference: settings.theme 
+          theme_preference: theme 
         })
         .eq('id', user?.id);
 
@@ -51,8 +71,24 @@ const UserSettings = () => {
     }
   };
 
-  const getThemeIcon = (theme: string) => {
-    switch (theme) {
+  const handleThemeChange = async (newTheme: string) => {
+    setTheme(newTheme);
+    
+    // Save theme preference to database
+    if (user) {
+      try {
+        await supabase
+          .from('profiles')
+          .update({ theme_preference: newTheme })
+          .eq('id', user.id);
+      } catch (error) {
+        console.error('Failed to save theme preference:', error);
+      }
+    }
+  };
+
+  const getThemeIcon = (currentTheme: string) => {
+    switch (currentTheme) {
       case 'dark': return <Moon className="h-4 w-4" />;
       case 'system': return <Monitor className="h-4 w-4" />;
       default: return <Sun className="h-4 w-4" />;
@@ -108,7 +144,7 @@ const UserSettings = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            {getThemeIcon(settings.theme)}
+            {getThemeIcon(theme || 'light')}
             Appearance
           </CardTitle>
         </CardHeader>
@@ -116,8 +152,8 @@ const UserSettings = () => {
           <div>
             <Label htmlFor="theme">Theme</Label>
             <Select
-              value={settings.theme}
-              onValueChange={(value) => setSettings(prev => ({ ...prev, theme: value }))}
+              value={theme || 'light'}
+              onValueChange={handleThemeChange}
             >
               <SelectTrigger>
                 <SelectValue />
