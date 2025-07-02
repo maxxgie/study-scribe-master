@@ -136,7 +136,7 @@ const WeeklyProgressManager = () => {
           <div className="space-y-3">
             <h4 className="font-medium">Reset Weekly Progress</h4>
             <p className="text-sm text-muted-foreground">
-              Save current progress and start fresh for the new week. Choose whether to keep lagging unit status.
+              Save current progress and start fresh for the new week. This only resets study session progress, not assignments. Assignments persist throughout the semester.
             </p>
             <div className="flex gap-2">
               <Button

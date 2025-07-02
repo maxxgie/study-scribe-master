@@ -85,12 +85,12 @@ const AssignmentTracker = () => {
     }
   };
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityVariant = (priority: string) => {
     switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'high': return 'destructive';
+      case 'medium': return 'secondary';
+      case 'low': return 'outline';
+      default: return 'outline';
     }
   };
 
@@ -105,55 +105,69 @@ const AssignmentTracker = () => {
     return `Due in ${diffInDays} days`;
   };
 
-  const AssignmentCard = ({ assignment, bgColor = 'bg-white' }: { assignment: any; bgColor?: string }) => (
-    <div className={`flex items-center justify-between p-3 border rounded-lg ${bgColor}`}>
-      <div className="flex items-center gap-3">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => toggleAssignmentStatus(assignment)}
-        >
-          <CheckCircle className="h-4 w-4" />
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h4 className={`font-medium ${assignment.completed ? 'line-through text-muted-foreground' : ''}`}>
-              {assignment.title}
-            </h4>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSelectedAssignmentId(selectedAssignmentId === assignment.id ? null : assignment.id)}
-            >
-              📎
-            </Button>
-          </div>
-          <p className="text-sm text-muted-foreground">{formatDueDate(assignment.due_date)}</p>
-          {assignment.description && (
-            <p className="text-sm text-muted-foreground mt-1">{assignment.description}</p>
-          )}
-          {selectedAssignmentId === assignment.id && (
-            <div className="mt-3 p-3 border rounded-lg bg-gray-50">
-              <AssignmentFileUpload assignmentId={assignment.id} />
+  const AssignmentCard = ({ assignment, variant = 'default' }: { assignment: any; variant?: 'default' | 'overdue' | 'completed' }) => {
+    const getCardStyles = () => {
+      switch (variant) {
+        case 'overdue': return 'bg-destructive/5 border-destructive/20';
+        case 'completed': return 'bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-900/30';
+        default: return 'bg-card';
+      }
+    };
+
+    return (
+      <div className={`flex items-center justify-between p-3 border rounded-lg ${getCardStyles()}`}>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => toggleAssignmentStatus(assignment)}
+            className={`${assignment.completed ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            <CheckCircle className="h-4 w-4" />
+          </Button>
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <h4 className={`font-medium ${assignment.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                {assignment.title}
+              </h4>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedAssignmentId(selectedAssignmentId === assignment.id ? null : assignment.id)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                📎
+              </Button>
             </div>
-          )}
+            <p className={`text-sm ${variant === 'overdue' ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+              {formatDueDate(assignment.due_date)}
+            </p>
+            {assignment.description && (
+              <p className="text-sm text-muted-foreground mt-1">{assignment.description}</p>
+            )}
+            {selectedAssignmentId === assignment.id && (
+              <div className="mt-3 p-3 border rounded-lg bg-accent/50">
+                <AssignmentFileUpload assignmentId={assignment.id} />
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant={getPriorityVariant(assignment.priority)}>
+            {assignment.priority}
+          </Badge>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => deleteAssignment(assignment.id)}
+            className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+          >
+            ×
+          </Button>
         </div>
       </div>
-      <div className="flex items-center gap-2">
-        <Badge className={getPriorityColor(assignment.priority)}>
-          {assignment.priority}
-        </Badge>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => deleteAssignment(assignment.id)}
-          className="h-8 w-8 p-0"
-        >
-          ×
-        </Button>
-      </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -252,16 +266,16 @@ const AssignmentTracker = () => {
 
       {/* Overdue Assignments */}
       {overDueAssignments.length > 0 && (
-        <Card className="border-red-200">
+        <Card className="border-destructive/20">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-700">
+            <CardTitle className="flex items-center gap-2 text-destructive">
               <AlertTriangle className="h-5 w-5" />
               Overdue Assignments ({overDueAssignments.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {overDueAssignments.map(assignment => (
-              <AssignmentCard key={assignment.id} assignment={assignment} bgColor="bg-red-50" />
+              <AssignmentCard key={assignment.id} assignment={assignment} variant="overdue" />
             ))}
           </CardContent>
         </Card>
@@ -282,7 +296,7 @@ const AssignmentTracker = () => {
             </p>
           ) : (
             upcomingAssignments.map(assignment => (
-              <AssignmentCard key={assignment.id} assignment={assignment} />
+              <AssignmentCard key={assignment.id} assignment={assignment} variant="default" />
             ))
           )}
         </CardContent>
@@ -292,14 +306,14 @@ const AssignmentTracker = () => {
       {assignments.filter(a => a.completed).length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-700">
+            <CardTitle className="flex items-center gap-2 text-green-600 dark:text-green-400">
               <CheckCircle className="h-5 w-5" />
               Completed Assignments ({assignments.filter(a => a.completed).length})
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {assignments.filter(a => a.completed).map(assignment => (
-              <AssignmentCard key={assignment.id} assignment={assignment} bgColor="bg-green-50" />
+              <AssignmentCard key={assignment.id} assignment={assignment} variant="completed" />
             ))}
           </CardContent>
         </Card>

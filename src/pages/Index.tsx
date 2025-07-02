@@ -13,6 +13,7 @@ import AssignmentTracker from '@/components/AssignmentTracker';
 import CourseManager from '@/components/CourseManager';
 import StudySessionsList from '@/components/StudySessionsList';
 import UserSettings from '@/components/UserSettings';
+import CalendarView from '@/components/CalendarView';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, Calendar, TrendingUp, Clock, Bell, BookCheck, GraduationCap, Settings } from 'lucide-react';
 
@@ -52,10 +53,14 @@ const Index = () => {
 
           {/* Main Content */}
           <Tabs defaultValue="dashboard" className="w-full">
-            <TabsList className="grid w-full grid-cols-8 mb-8">
+            <TabsList className="grid w-full grid-cols-9 mb-8">
               <TabsTrigger value="dashboard" className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4" />
                 Dashboard
+              </TabsTrigger>
+              <TabsTrigger value="calendar" className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Calendar
               </TabsTrigger>
               <TabsTrigger value="logger" className="flex items-center gap-2">
                 <Clock className="h-4 w-4" />
@@ -89,6 +94,10 @@ const Index = () => {
 
             <TabsContent value="dashboard" className="space-y-6">
               <StudyAnalytics />
+            </TabsContent>
+
+            <TabsContent value="calendar" className="space-y-6">
+              <CalendarView />
             </TabsContent>
 
             <TabsContent value="logger" className="space-y-6">
