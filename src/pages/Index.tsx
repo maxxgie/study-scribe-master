@@ -8,8 +8,12 @@ import StudyLogger from '@/components/StudyLogger';
 import StudyAnalytics from '@/components/StudyAnalytics';
 import ProgressCharts from '@/components/ProgressCharts';
 import WeeklyTimetable from '@/components/WeeklyTimetable';
+import NotificationCenter from '@/components/NotificationCenter';
+import AssignmentTracker from '@/components/AssignmentTracker';
+import CourseManager from '@/components/CourseManager';
+import UserSettings from '@/components/UserSettings';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart, Calendar, TrendingUp, Clock } from 'lucide-react';
+import { BarChart, Calendar, TrendingUp, Clock, Bell, BookCheck, GraduationCap, Settings } from 'lucide-react';
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -41,13 +45,13 @@ const Index = () => {
               Welcome back, {user.user_metadata?.full_name || 'Student'}!
             </h2>
             <p className="text-lg text-gray-600">
-              Track your progress, analyze patterns, and optimize your study schedule
+              Track your progress, manage assignments, and optimize your study schedule
             </p>
           </div>
 
           {/* Main Content */}
           <Tabs defaultValue="dashboard" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-8">
+            <TabsList className="grid w-full grid-cols-8 mb-8">
               <TabsTrigger value="dashboard" className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4" />
                 Dashboard
@@ -63,6 +67,22 @@ const Index = () => {
               <TabsTrigger value="timetable" className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
                 Timetable
+              </TabsTrigger>
+              <TabsTrigger value="notifications" className="flex items-center gap-2">
+                <Bell className="h-4 w-4" />
+                Notifications
+              </TabsTrigger>
+              <TabsTrigger value="assignments" className="flex items-center gap-2">
+                <BookCheck className="h-4 w-4" />
+                Assignments
+              </TabsTrigger>
+              <TabsTrigger value="courses" className="flex items-center gap-2">
+                <GraduationCap className="h-4 w-4" />
+                Courses
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                Settings
               </TabsTrigger>
             </TabsList>
 
@@ -87,6 +107,22 @@ const Index = () => {
 
             <TabsContent value="timetable" className="space-y-6">
               <WeeklyTimetable />
+            </TabsContent>
+
+            <TabsContent value="notifications" className="space-y-6">
+              <NotificationCenter />
+            </TabsContent>
+
+            <TabsContent value="assignments" className="space-y-6">
+              <AssignmentTracker />
+            </TabsContent>
+
+            <TabsContent value="courses" className="space-y-6">
+              <CourseManager />
+            </TabsContent>
+
+            <TabsContent value="settings" className="space-y-6">
+              <UserSettings />
             </TabsContent>
           </Tabs>
         </div>

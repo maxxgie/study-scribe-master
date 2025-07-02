@@ -12,6 +12,7 @@ export type Database = {
       assignments: {
         Row: {
           completed: boolean | null
+          course_id: string | null
           created_at: string
           description: string | null
           due_date: string
@@ -24,6 +25,7 @@ export type Database = {
         }
         Insert: {
           completed?: boolean | null
+          course_id?: string | null
           created_at?: string
           description?: string | null
           due_date: string
@@ -36,6 +38,7 @@ export type Database = {
         }
         Update: {
           completed?: boolean | null
+          course_id?: string | null
           created_at?: string
           description?: string | null
           due_date?: string
@@ -48,6 +51,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "assignments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "assignments_unit_id_fkey"
             columns: ["unit_id"]
             isOneToOne: false
@@ -59,6 +69,95 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      courses: {
+        Row: {
+          code: string
+          created_at: string
+          credits: number | null
+          description: string | null
+          id: string
+          instructor: string | null
+          name: string
+          semester: string | null
+          updated_at: string
+          user_id: string
+          year: number | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          credits?: number | null
+          description?: string | null
+          id?: string
+          instructor?: string | null
+          name: string
+          semester?: string | null
+          updated_at?: string
+          user_id: string
+          year?: number | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          credits?: number | null
+          description?: string | null
+          id?: string
+          instructor?: string | null
+          name?: string
+          semester?: string | null
+          updated_at?: string
+          user_id?: string
+          year?: number | null
+        }
+        Relationships: []
+      }
+      exam_schedules: {
+        Row: {
+          course_id: string
+          created_at: string
+          duration_minutes: number | null
+          exam_date: string
+          exam_type: string
+          id: string
+          instructions: string | null
+          location: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          duration_minutes?: number | null
+          exam_date: string
+          exam_type?: string
+          id?: string
+          instructions?: string | null
+          location?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          duration_minutes?: number | null
+          exam_date?: string
+          exam_type?: string
+          id?: string
+          instructions?: string | null
+          location?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_schedules_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
             referencedColumns: ["id"]
           },
         ]
@@ -114,6 +213,42 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          read: boolean | null
+          related_id: string | null
+          related_table: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          read?: boolean | null
+          related_id?: string | null
+          related_table?: string | null
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          read?: boolean | null
+          related_id?: string | null
+          related_table?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -122,6 +257,7 @@ export type Database = {
           full_name: string | null
           id: string
           role: string | null
+          theme_preference: string | null
           updated_at: string
         }
         Insert: {
@@ -131,6 +267,7 @@ export type Database = {
           full_name?: string | null
           id: string
           role?: string | null
+          theme_preference?: string | null
           updated_at?: string
         }
         Update: {
@@ -140,6 +277,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           role?: string | null
+          theme_preference?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -396,29 +534,45 @@ export type Database = {
       study_units: {
         Row: {
           color: string
+          course_id: string | null
           created_at: string
           id: number
+          is_lagging: boolean | null
+          lagging_hours: number | null
           name: string
           user_id: string | null
           weekly_goal: number | null
         }
         Insert: {
           color?: string
+          course_id?: string | null
           created_at?: string
           id?: number
+          is_lagging?: boolean | null
+          lagging_hours?: number | null
           name: string
           user_id?: string | null
           weekly_goal?: number | null
         }
         Update: {
           color?: string
+          course_id?: string | null
           created_at?: string
           id?: number
+          is_lagging?: boolean | null
+          lagging_hours?: number | null
           name?: string
           user_id?: string | null
           weekly_goal?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "study_units_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "study_units_user_id_fkey"
             columns: ["user_id"]
@@ -466,12 +620,61 @@ export type Database = {
           },
         ]
       }
+      weekly_progress: {
+        Row: {
+          created_at: string
+          end_date: string
+          goals_met: number | null
+          id: string
+          recommendations: string | null
+          start_date: string
+          summary: string | null
+          total_goals: number | null
+          total_hours: number | null
+          user_id: string
+          week_number: number
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          goals_met?: number | null
+          id?: string
+          recommendations?: string | null
+          start_date: string
+          summary?: string | null
+          total_goals?: number | null
+          total_hours?: number | null
+          user_id: string
+          week_number: number
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          goals_met?: number | null
+          id?: string
+          recommendations?: string | null
+          start_date?: string
+          summary?: string | null
+          total_goals?: number | null
+          total_hours?: number | null
+          user_id?: string
+          week_number?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_lagging_units: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      generate_assignment_notifications: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

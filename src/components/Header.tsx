@@ -1,13 +1,16 @@
 
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNotifications } from '@/hooks/useNotifications';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { BookOpen, LogOut, User } from 'lucide-react';
+import { BookOpen, LogOut, User, Bell } from 'lucide-react';
 
 const Header = () => {
   const { user, signOut } = useAuth();
+  const { unreadCount } = useNotifications();
 
   const initials = user?.user_metadata?.full_name
     ?.split(' ')
@@ -28,6 +31,19 @@ const Header = () => {
             <span className="text-sm text-muted-foreground">
               Welcome, {user?.user_metadata?.full_name || user?.email}
             </span>
+            
+            {/* Notification Bell */}
+            <div className="relative">
+              <Bell className="h-5 w-5 text-muted-foreground" />
+              {unreadCount > 0 && (
+                <Badge 
+                  variant="destructive" 
+                  className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center text-xs p-0"
+                >
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </Badge>
+              )}
+            </div>
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
