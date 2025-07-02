@@ -5,7 +5,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Bell, Check, CheckCheck, Trash2, AlertTriangle, Info, CheckCircle, XCircle, Plus } from 'lucide-react';
+import { Bell, Check, CheckCheck, Trash2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { createTestNotifications } from '@/utils/notificationUtils';
 
@@ -21,10 +21,10 @@ const NotificationCenter = () => {
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
-      case 'warning': return <AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400" />;
-      case 'success': return <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />;
-      case 'error': return <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />;
-      default: return <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />;
+      case 'warning': return <Bell className="h-4 w-4 text-orange-600 dark:text-orange-400" />;
+      case 'success': return <Check className="h-4 w-4 text-green-600 dark:text-green-400" />;
+      case 'error': return <Bell className="h-4 w-4 text-red-600 dark:text-red-400" />;
+      default: return <Bell className="h-4 w-4 text-blue-600 dark:text-blue-400" />;
     }
   };
 
@@ -74,7 +74,6 @@ const NotificationCenter = () => {
                 onClick={handleCreateTestNotifications}
                 className="flex items-center gap-2"
               >
-                <Plus className="h-4 w-4" />
                 Add Test Notifications
               </Button>
             )}

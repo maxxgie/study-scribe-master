@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { Settings, User, Bell, Moon, Sun, Monitor } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { createNotification } from '@/utils/notificationUtils';
 
 const UserSettings = () => {
   const { user } = useAuth();
@@ -62,6 +63,17 @@ const UserSettings = () => {
         .eq('id', user?.id);
 
       if (profileError) throw profileError;
+
+      // Create success notification
+      if (user?.id) {
+        await createNotification(user.id, {
+          title: 'Profile Updated',
+          message: 'Your personal details have been successfully updated.',
+          type: 'success',
+          related_table: 'profiles',
+          related_id: user.id,
+        });
+      }
 
       toast.success('Profile updated successfully');
     } catch (error: any) {
