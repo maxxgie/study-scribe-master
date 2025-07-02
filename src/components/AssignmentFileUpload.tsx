@@ -2,7 +2,7 @@
 import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Upload, File, Trash2 } from 'lucide-react';
+import { Upload, File } from 'lucide-react';
 import { useAssignmentFiles } from '@/hooks/useAssignmentFiles';
 
 interface AssignmentFileUploadProps {
@@ -31,6 +31,17 @@ const AssignmentFileUpload = ({ assignmentId }: AssignmentFileUploadProps) => {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
     return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+  };
+
+  const handleFileView = (fileUrl: string, fileName: string) => {
+    // Create a temporary link to view/download the file
+    const link = document.createElement('a');
+    link.href = fileUrl;
+    link.target = '_blank';
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -62,9 +73,15 @@ const AssignmentFileUpload = ({ assignmentId }: AssignmentFileUploadProps) => {
           {files.map((file) => (
             <div key={file.id} className="flex items-center justify-between p-2 border rounded-lg bg-gray-50">
               <div className="flex items-center gap-2">
-                <File className="h-4 w-4 text-gray-500" />
                 <div>
-                  <p className="text-sm font-medium">{file.file_name}</p>
+                  <Button
+                    variant="link"
+                    size="sm"
+                    onClick={() => handleFileView(file.file_url, file.file_name)}
+                    className="h-auto p-0 font-medium text-blue-600 hover:text-blue-800"
+                  >
+                    {file.file_name}
+                  </Button>
                   <p className="text-xs text-gray-500">
                     {formatFileSize(file.file_size)}
                   </p>
@@ -79,8 +96,9 @@ const AssignmentFileUpload = ({ assignmentId }: AssignmentFileUploadProps) => {
                   size="sm"
                   onClick={() => deleteFile(file.id)}
                   disabled={isDeleting}
+                  className="h-8 w-8 p-0"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  ×
                 </Button>
               </div>
             </div>

@@ -29,6 +29,7 @@ export interface StudyContextType {
   currentWeek: number;
   loading: boolean;
   addStudySession: (courseId: string, duration: number, notes?: string, subtopic?: string, confidenceRating?: number) => Promise<void>;
+  deleteStudySession: (sessionId: string) => Promise<void>;
   getUnitProgress: (courseId: string) => number;
   getWeeklyProgress: () => Record<string, number>;
   getLaggingUnits: () => StudyUnit[];
@@ -191,6 +192,38 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  const deleteStudySession = async (sessionId: string) => {
+    if (!user) return;
+
+    try {
+      const sessionToDelete = sessions.find(s => s.id === sessionId);
+      if (!sessionToDelete) return;
+
+      const { error } = await supabase
+        .from('study_sessions')
+        .delete()
+        .eq('id', sessionId);
+
+      if (error) throw error;
+
+      // Remove from local state
+      setSessions(prev => prev.filter(s => s.id !== sessionId));
+
+      // Update unit total hours
+      setUnits(prev => prev.map(unit => 
+        unit.id === sessionToDelete.courseId 
+          ? { ...unit, totalHours: Math.max(0, unit.totalHours - (sessionToDelete.duration / 60)) }
+          : unit
+      ));
+
+      toast.success('Study session deleted successfully');
+
+    } catch (error) {
+      console.error('Error deleting study session:', error);
+      toast.error('Failed to delete study session');
+    }
+  };
+
   const getUnitProgress = (courseId: string): number => {
     const thisWeekStart = new Date();
     thisWeekStart.setDate(thisWeekStart.getDate() - thisWeekStart.getDay());
@@ -251,6 +284,7 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       currentWeek,
       loading,
       addStudySession,
+      deleteStudySession,
       getUnitProgress,
       getWeeklyProgress,
       getLaggingUnits,

@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { useCourses } from '@/hooks/useCourses';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,10 +9,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, BookOpen, Trash2, Edit2, Upload } from 'lucide-react';
+import { Plus, BookOpen, Edit2, Upload } from 'lucide-react';
+import { createNotification } from '@/utils/notificationUtils';
 import CourseFileUpload from '@/components/CourseFileUpload';
 
 const CourseManager = () => {
+  const { user } = useAuth();
   const { courses, createCourse, updateCourse, deleteCourse } = useCourses();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<any>(null);
@@ -26,16 +29,26 @@ const CourseManager = () => {
     instructor: '',
   });
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!courseForm.name || !courseForm.code) return;
 
     if (editingCourse) {
-      updateCourse({
+      await updateCourse({
         id: editingCourse.id,
         ...courseForm,
       });
     } else {
-      createCourse(courseForm);
+      await createCourse(courseForm);
+      
+      // Create notification for new course
+      if (user?.id) {
+        await createNotification(user.id, {
+          title: 'Course Added',
+          message: `"${courseForm.name} (${courseForm.code})" has been successfully added to your courses.`,
+          type: 'success',
+          related_table: 'courses',
+        });
+      }
     }
 
     resetForm();
@@ -261,8 +274,9 @@ const CourseManager = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => deleteCourse(course.id)}
+                        className="h-8 w-8 p-0"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        ×
                       </Button>
                     </div>
                   </CardTitle>

@@ -13,6 +13,7 @@ import { Settings, User, Bell, Moon, Sun, Monitor } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { createNotification } from '@/utils/notificationUtils';
+import WeeklyProgressManager from '@/components/WeeklyProgressManager';
 
 const UserSettings = () => {
   const { user } = useAuth();
@@ -292,6 +293,9 @@ const UserSettings = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Weekly Progress Management */}
+      <WeeklyProgressManager />
     </div>
   );
 };

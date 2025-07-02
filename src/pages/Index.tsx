@@ -11,6 +11,7 @@ import WeeklyTimetable from '@/components/WeeklyTimetable';
 import NotificationCenter from '@/components/NotificationCenter';
 import AssignmentTracker from '@/components/AssignmentTracker';
 import CourseManager from '@/components/CourseManager';
+import StudySessionsList from '@/components/StudySessionsList';
 import UserSettings from '@/components/UserSettings';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, Calendar, TrendingUp, Clock, Bell, BookCheck, GraduationCap, Settings } from 'lucide-react';
@@ -96,7 +97,7 @@ const Index = () => {
                   <StudyLogger />
                 </div>
                 <div className="lg:col-span-2">
-                  <ProgressCharts />
+                  <StudySessionsList />
                 </div>
               </div>
             </TabsContent>
