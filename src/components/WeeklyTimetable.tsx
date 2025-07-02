@@ -5,8 +5,11 @@ import { useStudy } from '@/contexts/StudyContext';
 import { Calendar, Clock } from 'lucide-react';
 
 const WeeklyTimetable = () => {
-  const { units, getLaggingUnits } = useStudy();
+  const { units, getLaggingUnits, getUnitProgress } = useStudy();
   const laggingUnits = getLaggingUnits();
+  
+  // Filter out units that are 100% complete
+  const activeUnits = units.filter(unit => getUnitProgress(unit.id) < 100);
 
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   
@@ -14,62 +17,83 @@ const WeeklyTimetable = () => {
   const getTimetableForDay = (dayIndex: number) => {
     const sessions = [];
     
+    // Filter lagging units to only include active ones
+    const activeLaggingUnits = laggingUnits.filter(unit => getUnitProgress(unit.id) < 100);
+    
     if (dayIndex < 5) { // Weekdays
       // Morning session 3am-7am (4 hours)
-      sessions.push({
-        time: '03:00 - 05:00',
-        units: laggingUnits.slice(0, 2),
-        type: 'priority'
-      });
-      sessions.push({
-        time: '05:00 - 07:00',
-        units: units.slice(2, 4),
-        type: 'regular'
-      });
+      if (activeLaggingUnits.length > 0) {
+        sessions.push({
+          time: '03:00 - 05:00',
+          units: activeLaggingUnits.slice(0, 2),
+          type: 'priority'
+        });
+      }
+      if (activeUnits.length > 2) {
+        sessions.push({
+          time: '05:00 - 07:00',
+          units: activeUnits.slice(2, 4),
+          type: 'regular'
+        });
+      }
       
       // Evening session 5pm-8pm (3 hours)
-      sessions.push({
-        time: '17:00 - 18:30',
-        units: [units[dayIndex % units.length]],
-        type: 'regular'
-      });
-      sessions.push({
-        time: '18:30 - 20:00',
-        units: [units[(dayIndex + 1) % units.length]],
-        type: 'regular'
-      });
+      if (activeUnits.length > 0) {
+        sessions.push({
+          time: '17:00 - 18:30',
+          units: [activeUnits[dayIndex % activeUnits.length]],
+          type: 'regular'
+        });
+        sessions.push({
+          time: '18:30 - 20:00',
+          units: [activeUnits[(dayIndex + 1) % activeUnits.length]],
+          type: 'regular'
+        });
+      }
     } else if (dayIndex === 5) { // Saturday
-      sessions.push({
-        time: '06:00 - 08:30',
-        units: laggingUnits.slice(0, 2),
-        type: 'priority'
-      });
-      sessions.push({
-        time: '08:30 - 11:00',
-        units: units.slice(4, 6),
-        type: 'regular'
-      });
-      sessions.push({
-        time: '14:00 - 15:30',
-        units: [units[6]],
-        type: 'regular'
-      });
-      sessions.push({
-        time: '15:30 - 17:00',
-        units: [units[7]],
-        type: 'regular'
-      });
+      if (activeLaggingUnits.length > 0) {
+        sessions.push({
+          time: '06:00 - 08:30',
+          units: activeLaggingUnits.slice(0, 2),
+          type: 'priority'
+        });
+      }
+      if (activeUnits.length > 4) {
+        sessions.push({
+          time: '08:30 - 11:00',
+          units: activeUnits.slice(4, 6),
+          type: 'regular'
+        });
+      }
+      if (activeUnits.length > 6) {
+        sessions.push({
+          time: '14:00 - 15:30',
+          units: [activeUnits[6]],
+          type: 'regular'
+        });
+      }
+      if (activeUnits.length > 7) {
+        sessions.push({
+          time: '15:30 - 17:00',
+          units: [activeUnits[7]],
+          type: 'regular'
+        });
+      }
     } else { // Sunday
-      sessions.push({
-        time: '06:00 - 08:30',
-        units: laggingUnits.slice(0, 2),
-        type: 'priority'
-      });
-      sessions.push({
-        time: '08:30 - 11:00',
-        units: units.slice(0, 2),
-        type: 'review'
-      });
+      if (activeLaggingUnits.length > 0) {
+        sessions.push({
+          time: '06:00 - 08:30',
+          units: activeLaggingUnits.slice(0, 2),
+          type: 'priority'
+        });
+      }
+      if (activeUnits.length > 0) {
+        sessions.push({
+          time: '08:30 - 11:00',
+          units: activeUnits.slice(0, 2),
+          type: 'review'
+        });
+      }
     }
     
     return sessions;
