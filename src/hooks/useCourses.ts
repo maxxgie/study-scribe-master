@@ -6,8 +6,8 @@ import { toast } from 'sonner';
 export interface Course {
   id: string;
   user_id: string;
-  name: string;
-  code: string;
+  name: string; // Required field
+  code: string; // Required field
   description?: string;
   semester?: string;
   year?: number;
@@ -34,7 +34,7 @@ export const useCourses = () => {
   });
 
   const createCourseMutation = useMutation({
-    mutationFn: async (course: Partial<Course>) => {
+    mutationFn: async (course: Omit<Course, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
         .from('courses')
         .insert([{

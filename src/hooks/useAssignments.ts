@@ -8,9 +8,9 @@ export interface Assignment {
   user_id: string;
   course_id?: string;
   unit_id?: number;
-  title: string;
+  title: string; // Required field
   description?: string;
-  due_date: string;
+  due_date: string; // Required field
   completed: boolean;
   priority: 'low' | 'medium' | 'high';
   created_at: string;
@@ -34,7 +34,7 @@ export const useAssignments = () => {
   });
 
   const createAssignmentMutation = useMutation({
-    mutationFn: async (assignment: Partial<Assignment>) => {
+    mutationFn: async (assignment: Omit<Assignment, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
         .from('assignments')
         .insert([{
