@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudyProvider } from '@/contexts/StudyContext';
@@ -53,44 +52,46 @@ const Index = () => {
 
           {/* Main Content */}
           <Tabs defaultValue="dashboard" className="w-full">
-            <TabsList className="grid w-full grid-cols-9 mb-8">
-              <TabsTrigger value="dashboard" className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
-                Dashboard
-              </TabsTrigger>
-              <TabsTrigger value="calendar" className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Calendar
-              </TabsTrigger>
-              <TabsTrigger value="logger" className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                Log Study
-              </TabsTrigger>
-              <TabsTrigger value="charts" className="flex items-center gap-2">
-                <BarChart className="h-4 w-4" />
-                Analytics
-              </TabsTrigger>
-              <TabsTrigger value="timetable" className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Timetable
-              </TabsTrigger>
-              <TabsTrigger value="notifications" className="flex items-center gap-2">
-                <Bell className="h-4 w-4" />
-                Notifications
-              </TabsTrigger>
-              <TabsTrigger value="assignments" className="flex items-center gap-2">
-                <BookCheck className="h-4 w-4" />
-                Assignments
-              </TabsTrigger>
-              <TabsTrigger value="courses" className="flex items-center gap-2">
-                <GraduationCap className="h-4 w-4" />
-                Courses
-              </TabsTrigger>
-              <TabsTrigger value="settings" className="flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                Settings
-              </TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto">
+              <TabsList className="flex w-max min-w-full gap-2 mb-8">
+                <TabsTrigger value="dashboard" className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  Dashboard
+                </TabsTrigger>
+                <TabsTrigger value="calendar" className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Calendar
+                </TabsTrigger>
+                <TabsTrigger value="logger" className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Log Study
+                </TabsTrigger>
+                <TabsTrigger value="charts" className="flex items-center gap-2">
+                  <BarChart className="h-4 w-4" />
+                  Analytics
+                </TabsTrigger>
+                <TabsTrigger value="timetable" className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Timetable
+                </TabsTrigger>
+                <TabsTrigger value="notifications" className="flex items-center gap-2">
+                  <Bell className="h-4 w-4" />
+                  Notifications
+                </TabsTrigger>
+                <TabsTrigger value="assignments" className="flex items-center gap-2">
+                  <BookCheck className="h-4 w-4" />
+                  Assignments
+                </TabsTrigger>
+                <TabsTrigger value="courses" className="flex items-center gap-2">
+                  <GraduationCap className="h-4 w-4" />
+                  Courses
+                </TabsTrigger>
+                <TabsTrigger value="settings" className="flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  Settings
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
             <TabsContent value="dashboard" className="space-y-6">
               <StudyAnalytics />
