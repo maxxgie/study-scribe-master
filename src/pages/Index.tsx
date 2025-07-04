@@ -52,8 +52,8 @@ const Index = () => {
 
           {/* Main Content */}
           <Tabs defaultValue="dashboard" className="w-full">
-            <div className="overflow-x-auto touch-auto">
-              <TabsList className="flex w-max gap-2 mb-8 whitespace-nowrap">
+            <div className="overflow-x-auto -mx-4 touch-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+              <TabsList className="flex w-max gap-2 mb-8 whitespace-nowrap px-4">
                 <TabsTrigger value="dashboard" className="flex items-center gap-2">
                   <TrendingUp className="h-4 w-4" />
                   Dashboard
