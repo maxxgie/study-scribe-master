@@ -52,7 +52,7 @@ const Index = () => {
 
           {/* Main Content */}
           <Tabs defaultValue="dashboard" className="w-full">
-            <div className="overflow-x-auto -mx-4 touch-auto">
+            <div className="overflow-x-auto touch-auto">
               <TabsList className="flex w-max gap-2 mb-8 whitespace-nowrap">
                 <TabsTrigger value="dashboard" className="flex items-center gap-2">
                   <TrendingUp className="h-4 w-4" />
